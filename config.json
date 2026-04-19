@@ -1,0 +1,51 @@
+{
+    "chain": "base",
+    "protocol": "aerodrome",
+    "pool": "WETH/USDC/volatile",
+    "base_token": "WETH",
+    "quote_token": "USDC",
+    "range_width_pct": 20,
+    "rebalance_drift_trigger_pct": "0.08",
+    "min_rebalance_interval_minutes": 720,
+    "reopen_cooldown_minutes": 180,
+    "min_price_move_to_act_pct": "0.015",
+    "min_rebalance_notional_usd": 40,
+    "min_open_notional_usd": 50,
+    "min_leg_usd": 20,
+    "min_total_capital_usd": 80,
+    "cash_reserve_usd": 15,
+    "deploy_fraction": "0.85",
+    "atr_period": 14,
+    "atr_timeframe": "1h",
+    "atr_emergency_pct": "0.035",
+    "bb_period": 20,
+    "bb_std_dev": 2.0,
+    "bb_timeframe": "1h",
+    "bb_bandwidth_emergency": "0.09",
+    "high_vol_confirm_ticks": 2,
+    "teardown_soft_slippage": "0.005",
+    "teardown_hard_slippage": "0.02",
+    "token_funding": [
+        {
+            "symbol": "WETH",
+            "address": "0x4200000000000000000000000000000000000006",
+            "chain": "base",
+            "amount": "0.02147298488549394",
+            "amount_type": "token",
+            "usd": 50
+        },
+        {
+            "symbol": "USDC",
+            "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+            "chain": "base",
+            "amount": "50",
+            "amount_type": "usd",
+            "usd": 50
+        }
+    ],
+    "anvil_funding": {
+        "ETH": 2,
+        "WETH": 0.2,
+        "USDC": 500
+    }
+}
