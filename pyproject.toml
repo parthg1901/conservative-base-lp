@@ -3,7 +3,7 @@ name = "conservative_base_lp"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "almanak>=2.13.1rc2",
+    "almanak==2.13.1rc3",
 ]
 
 [tool.almanak.run]
