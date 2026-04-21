@@ -1,7 +1,7 @@
 {
     "chain": "base",
     "protocol": "aerodrome",
-    "pool": "WETH/USDC/volatile",
+    "pool": "WETH/USDC",
     "base_token": "WETH",
     "quote_token": "USDC",
     "range_width_pct": 20,

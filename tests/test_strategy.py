@@ -13,7 +13,7 @@ def config() -> dict:
     return {
         "chain": "base",
         "protocol": "aerodrome",
-        "pool": "WETH/USDC/volatile",
+        "pool": "WETH/USDC",
         "base_token": "WETH",
         "quote_token": "USDC",
         "range_width_pct": 20,
@@ -85,7 +85,7 @@ def test_opens_lp_when_conditions_are_healthy(strategy: ConservativeBaseLpStrate
 
     assert intent.intent_type.value == "LP_OPEN"
     assert intent.protocol == "aerodrome"
-    assert intent.pool == "WETH/USDC/volatile"
+    assert intent.pool == "WETH/USDC"
 
 
 def test_holds_on_insufficient_total_capital(strategy: ConservativeBaseLpStrategy):

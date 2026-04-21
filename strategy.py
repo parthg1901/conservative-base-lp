@@ -29,10 +29,19 @@ class ConservativeBaseLpStrategy(IntentStrategy):
                 return self.config.get(key, default)
             return getattr(self.config, key, default)
 
-        self.pool = str(get_config("pool", "WETH/USDC/volatile"))
+        configured_pool = str(get_config("pool", "WETH/USDC"))
+        pool_parts = [part.strip() for part in configured_pool.split("/") if part.strip()]
+        token0 = pool_parts[0] if len(pool_parts) > 0 else "WETH"
+        token1 = pool_parts[1] if len(pool_parts) > 1 else "USDC"
+        pool_type = pool_parts[2].lower() if len(pool_parts) > 2 else "volatile"
+
+        self.pool = f"{token0}/{token1}"
+        self.pool_type = "stable" if pool_type == "stable" else "volatile"
+        self.intent_pool = f"{self.pool}/stable" if self.pool_type == "stable" else self.pool
+
         self.protocol = str(get_config("protocol", "aerodrome"))
-        self.base_token = str(get_config("base_token", "WETH"))
-        self.quote_token = str(get_config("quote_token", "USDC"))
+        self.base_token = str(get_config("base_token", token0))
+        self.quote_token = str(get_config("quote_token", token1))
 
         self.range_width_pct = Decimal(str(get_config("range_width_pct", "20")))
         self.rebalance_drift_trigger_pct = Decimal(str(get_config("rebalance_drift_trigger_pct", "0.08")))
@@ -179,7 +188,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
             self._last_action_ts = now
             return Intent.lp_close(
                 position_id=self._position_id,
-                pool=self.pool,
+                pool=self.intent_pool,
                 collect_fees=True,
                 protocol=self.protocol,
             )
@@ -227,7 +236,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
         self._last_position_usd = deployable_usd
 
         return Intent.lp_open(
-            pool=self.pool,
+            pool=self.intent_pool,
             amount0=amount0,
             amount1=amount1,
             range_lower=lower,
@@ -242,7 +251,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
         now = datetime.now(UTC)
         intent_type = getattr(getattr(intent, "intent_type", None), "value", "")
         if intent_type == "LP_OPEN":
-            self._position_id = getattr(result, "position_id", None) or self.pool
+            self._position_id = getattr(result, "position_id", None) or self.intent_pool
             self._last_rebalance_ts = now
             self._pending_reopen = False
         elif intent_type == "LP_CLOSE":
@@ -332,7 +341,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
             intents.append(
                 Intent.lp_close(
                     position_id=str(self._position_id),
-                    pool=self.pool,
+                    pool=self.intent_pool,
                     collect_fees=True,
                     protocol=self.protocol,
                 )
