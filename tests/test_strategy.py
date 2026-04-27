@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from almanak.framework.intents import Intent
 from almanak.framework.teardown import TeardownMode
 from strategy import ConservativeBaseLpStrategy
 
@@ -158,7 +159,7 @@ def test_closes_lp_when_out_of_range_and_thresholds_met(strategy: ConservativeBa
     intent = strategy.decide(market)
 
     assert intent.intent_type.value == "LP_CLOSE"
-    assert intent.position_id == "pos-1"
+    assert intent.position_id == "WETH/USDC/volatile"
 
 
 def test_reopen_cooldown_blocks_new_open(strategy: ConservativeBaseLpStrategy):
@@ -198,6 +199,27 @@ def test_teardown_summary_and_intents(strategy: ConservativeBaseLpStrategy):
     hard_intents = strategy.generate_teardown_intents(TeardownMode.HARD)
 
     assert soft_intents[0].intent_type.value == "LP_CLOSE"
+    assert soft_intents[0].position_id == "WETH/USDC/volatile"
     assert soft_intents[1].intent_type.value == "SWAP"
     assert soft_intents[1].max_slippage == Decimal("0.005")
     assert hard_intents[1].max_slippage == Decimal("0.02")
+
+
+def test_teardown_uses_pool_position_id_after_open_result_returns_address(strategy: ConservativeBaseLpStrategy):
+    open_intent = Intent.lp_open(
+        pool="WETH/USDC",
+        amount0=Decimal("0.01"),
+        amount1=Decimal("20"),
+        range_lower=Decimal("1800"),
+        range_upper=Decimal("2200"),
+        protocol="aerodrome",
+    )
+    strategy.on_intent_executed(
+        open_intent,
+        success=True,
+        result=SimpleNamespace(position_id="0xcdac0d6c6c59727a65f871236188350531885c43"),
+    )
+
+    intents = strategy.generate_teardown_intents(TeardownMode.SOFT)
+    assert intents[0].intent_type.value == "LP_CLOSE"
+    assert intents[0].position_id == "WETH/USDC/volatile"

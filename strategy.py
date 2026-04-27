@@ -38,6 +38,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
         self.pool = f"{token0}/{token1}"
         self.pool_type = "stable" if pool_type == "stable" else "volatile"
         self.intent_pool = f"{self.pool}/stable" if self.pool_type == "stable" else self.pool
+        self.close_position_id = f"{self.pool}/{self.pool_type}"
 
         self.protocol = str(get_config("protocol", "aerodrome"))
         self.base_token = str(get_config("base_token", token0))
@@ -113,6 +114,11 @@ class ConservativeBaseLpStrategy(IntentStrategy):
             return self._last_position_usd
         return fallback
 
+    def _resolve_lp_close_position_id(self) -> str:
+        if self.protocol.lower() != "aerodrome":
+            return str(self._position_id)
+        return self.close_position_id
+
     def decide(self, market: MarketSnapshot) -> Optional[Intent]:
         now = self._now(market)
         try:
@@ -187,12 +193,11 @@ class ConservativeBaseLpStrategy(IntentStrategy):
             self._pending_reopen = True
             self._last_action_ts = now
             return Intent.lp_close(
-                position_id=self._position_id,
+                position_id=self._resolve_lp_close_position_id(),
                 pool=self.intent_pool,
                 collect_fees=True,
                 protocol=self.protocol,
             )
-
         try:
             base_balance = market.balance(self.base_token)
             quote_balance = market.balance(self.quote_token)
@@ -311,7 +316,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
             positions.append(
                 PositionInfo(
                     position_type=PositionType.LP,
-                    position_id=str(self._position_id),
+                    position_id=self._resolve_lp_close_position_id(),
                     chain=self.chain,
                     protocol=self.protocol,
                     value_usd=value,
@@ -340,7 +345,7 @@ class ConservativeBaseLpStrategy(IntentStrategy):
         if self._position_id is not None:
             intents.append(
                 Intent.lp_close(
-                    position_id=str(self._position_id),
+                    position_id=self._resolve_lp_close_position_id(),
                     pool=self.intent_pool,
                     collect_fees=True,
                     protocol=self.protocol,
